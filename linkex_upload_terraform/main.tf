@@ -35,7 +35,7 @@ module "environment" {
 
 #S3 bucket resource
 resource "aws_s3_bucket" "upload_bucket" {
-  bucket = "${module.environment.Project}_destination_bucket"
+  bucket = "${module.environment.Project}-destination-bucket"
   tags = {
     Name = "${module.environment.Project}_destination_bucket"
   }

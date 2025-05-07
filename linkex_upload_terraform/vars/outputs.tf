@@ -1,3 +1,3 @@
 output "Project" {
-  value = "linkex_upload_terraform"
+  value = "linkex-upload-terraform"
 }
