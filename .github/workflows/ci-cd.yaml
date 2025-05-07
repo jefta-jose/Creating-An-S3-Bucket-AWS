@@ -19,6 +19,7 @@ jobs:
 
       - name: Terraform Init
         run: |
+            cd linkex_upload_terraform
             terraform init
             terraform apply --auto-approve \
                 -var="access_key=${{ secrets.AWS_ACCESS_KEY_ID }}" \
