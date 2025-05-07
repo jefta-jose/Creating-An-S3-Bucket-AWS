@@ -40,3 +40,11 @@ resource "aws_s3_bucket" "upload_bucket" {
     Name = "${module.environment.Project}_destination_bucket"
   }
 }
+
+resource "aws_iam_user" "linkex_upload_user" {
+  name = "linkex-upload-user"
+
+  tags = {
+    Name = "linkex-upload-user"
+  }
+}
