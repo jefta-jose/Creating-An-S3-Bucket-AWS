@@ -1,0 +1,27 @@
+name: JIra-SmartSheets CI/CD
+
+on:
+    push:
+        branches: ["main"]
+
+env:
+    AWS_REGION: us-east-1
+
+jobs:
+    terraform:
+        name: Run Terraform
+        runs-on: ubuntu-latest
+        container:
+            image: hashicorp/terraform:latest
+
+        steps:
+            - name: Checkout Code
+              uses: actions/checkout@v4
+
+            - name: Run Terraform
+              run: |
+                cd linkex_upload_terraform
+                terraform init
+                terraform apply --auto-approve \
+                    -var="access_key=${{ secrets.AWS_ACCESS_KEY_ID }}" \
+                    -var="secret_key=${{ secrets.AWS_SECRET_ACCESS_KEY }}" \
