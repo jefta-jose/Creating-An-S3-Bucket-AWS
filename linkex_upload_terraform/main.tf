@@ -98,3 +98,11 @@ resource "aws_iam_policy" "s3_bucket_access" {
 }
 
 
+# at this stage we have the policy, the bucket and the user
+# now we need to attach the policy to the user 
+
+# attach the s3 bucket access policy to the IAM user
+resource "aws_iam_user_policy_attachment" "s3_bucket_access" {
+  user = aws_iam_user.linkex_upload_user.name
+  policy_arn = aws_iam_policy.s3_bucket_access.arn
+}
