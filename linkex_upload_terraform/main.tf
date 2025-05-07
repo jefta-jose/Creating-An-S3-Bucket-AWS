@@ -75,7 +75,10 @@ data "aws_iam_policy_document" "s3_bucket_access" {
 
     # this block defines what can you do the above to
     resources = [
+      # this gives us access to arn but nothing that is nested
       aws_s3_bucket.upload_bucket.arn,
+      # access to everything inside the bucket
+      "${aws_s3_bucket.upload_bucket.arn}/*"
     ]
 
   }
@@ -93,3 +96,5 @@ resource "aws_iam_policy" "s3_bucket_access" {
     Name = "${module.environment.Project}-s3-bucket-access-policy"
   }
 }
+
+
