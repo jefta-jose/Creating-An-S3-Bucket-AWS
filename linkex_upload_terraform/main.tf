@@ -22,8 +22,8 @@ provider "aws" {
 
 terraform {
   backend "s3" {
-    bucket = "jeff-linkex-learn"
-    key = "jeff_linkex/state/terraform.tfstate"
+    bucket = "linkex-upload-terraform-destination-bucket"
+    key = "state/terraform.tfstate"
     region = "us-east-1"
     encrypt = true
   }
