@@ -61,6 +61,7 @@ resource "aws_iam_user" "linkex_upload_user" {
 
 
 # we need to grant our user read && write to our s3
+# so we define that policy
 data "aws_iam_policy_document" "s3_bucket_access" {
   statement {
     effect = "Allow"
@@ -77,5 +78,18 @@ data "aws_iam_policy_document" "s3_bucket_access" {
       aws_s3_bucket.upload_bucket.arn,
     ]
 
+  }
+}
+
+# now lets create an s3 bucket access IAM policy
+resource "aws_iam_policy" "s3_bucket_access" {
+  name = "${module.environment.Project}-s3-bucket-access-policy"
+  description = "This policy allows access to ${aws_s3_bucket.upload_bucket.bucket}"
+  # why a json though ?
+  policy = data.aws_iam_policy_document.s3_bucket_access.json
+
+  #notice how we are tagging all our resources this makes it easer
+  tags = {
+    Name = "${module.environment.Project}-s3-bucket-access-policy"
   }
 }
