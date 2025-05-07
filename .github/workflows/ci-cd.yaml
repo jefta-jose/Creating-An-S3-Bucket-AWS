@@ -18,11 +18,8 @@ jobs:
         uses: hashicorp/setup-terraform@v3
 
       - name: Terraform Init
-        env:
-          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
         run: |
-          cd linkex_upload_terraform
-          terraform init
-          terraform plan
-          terraform apply
+            terraform init
+            terraform apply --auto-approve \
+                -var="access_key=${{ secrets.AWS_ACCESS_KEY_ID }}" \
+                -var="secret_key=${{ secrets.AWS_SECRET_ACCESS_KEY }}" 
