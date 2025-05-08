@@ -102,10 +102,12 @@ resource "aws_iam_user_policy_attachment" "s3_bucket_access" {
   policy_arn = aws_iam_policy.s3_bucket_access.arn   # Reference to policy ARN
 }
 
-# IAM Role for the Lambda
+# Creates an IAM role that AWS Lambda can assume to execute your function
+# This role defines what AWS services can assume it (in this case, Lambda)
 resource "aws_iam_role" "lambda_exec_role" {
   name = "${module.environment.Project}-lambda-role"
 
+  # The trust policy that specifies who can assume this role
   assume_role_policy = <<EOF
     {
         "Version": "2012-10-17",
@@ -122,60 +124,68 @@ resource "aws_iam_role" "lambda_exec_role" {
         EOF
 }
 
-# attach basic execution policy
+# Attaches the basic Lambda execution policy to the IAM role
+# This provides permissions for Lambda to write logs to CloudWatch
 resource "aws_iam_role_policy_attachment" "lambda_basic_execution" {
   role       = aws_iam_role.lambda_exec_role.name
   policy_arn = "arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole"
 }
 
-//Create zip file
+# Creates a ZIP archive of the Lambda function code
+# This packages your Lambda code for deployment
 data "archive_file" "zip_lambda" {
   type        = "zip"
-  source_dir  = "${path.module}/../lambda"
-  output_path = "${path.module}/../lambda.zip"
+  source_dir  = "${path.module}/../lambda"  # Source directory containing Lambda code
+  output_path = "${path.module}/../lambda.zip"  # Output path for the ZIP file
 }
 
-# create the lambda function
+# Creates the Lambda function resource
+# This defines the function's configuration including runtime, handler, and environment
 resource "aws_lambda_function" "s3_upload_trigger" {
-  function_name = "${module.environment.Project}-upload-trigger"
-  role = aws_iam_role.lambda_exec_role.arn
-  handler = "index.handler"
-  runtime = "python3.12"
-  timeout = 300
+  function_name = "${module.environment.Project}-upload-trigger"  # Unique name for the Lambda function
+  role          = aws_iam_role.lambda_exec_role.arn  # IAM role the function will assume
+  handler       = "index.handler"  # Entry point for the Lambda function
+  runtime       = "python3.12"  # Python 3.12 runtime environment
+  timeout       = 300  # Maximum execution time in seconds (5 minutes)
 
-  depends_on = [ aws_iam_role_policy_attachment.lambda_basic_execution ]
+  # Ensure IAM permissions are set before creating the Lambda
+  depends_on = [aws_iam_role_policy_attachment.lambda_basic_execution]
 
-  filename = "${path.module}/../lambda.zip"
+  filename = "${path.module}/../lambda.zip"  # Path to the deployment package
 
+  # Environment variables passed to the Lambda function
   environment {
     variables = {
-      BUCKET_NAME = aws_s3_bucket.upload_bucket.bucket
+      BUCKET_NAME = aws_s3_bucket.upload_bucket.bucket  # Makes bucket name available to Lambda
     }
   }
 
   tags = {
-    Name = "${module.environment.Project}-upload-trigger"
+    Name = "${module.environment.Project}-upload-trigger"  # Resource tag for identification
   }
 }
 
-# allow s3 to invoke the lambda
+# Grants S3 permission to invoke the Lambda function
+# This permission is required for S3 event notifications to trigger the Lambda
 resource "aws_lambda_permission" "allow_s3" {
-  statement_id  = "AllowExecutionFromS3"
-  action        = "lambda:InvokeFunction"
-  function_name = aws_lambda_function.s3_upload_trigger.arn
-  principal     = "s3.amazonaws.com"
-  source_arn    = aws_s3_bucket.upload_bucket.arn
+  statement_id  = "AllowExecutionFromS3"  # Unique identifier for the permission
+  action        = "lambda:InvokeFunction"  # The action being permitted
+  function_name = aws_lambda_function.s3_upload_trigger.arn  # The Lambda function to allow
+  principal     = "s3.amazonaws.com"  # The service being granted permission
+  source_arn    = aws_s3_bucket.upload_bucket.arn  # Restricts permission to this specific S3 bucket
 }
 
-
-#add s3 event notification
+# Configures S3 bucket notifications to trigger the Lambda function
+# This sets up the event-driven architecture between S3 and Lambda
 resource "aws_s3_bucket_notification" "bucket_notification" {
-  bucket = aws_s3_bucket.upload_bucket.id
+  bucket = aws_s3_bucket.upload_bucket.id  # The S3 bucket to monitor
 
+  # Lambda function configuration for the notification
   lambda_function {
-    lambda_function_arn = aws_lambda_function.s3_upload_trigger.arn
-    events              = ["s3:ObjectCreated:*"]
+    lambda_function_arn = aws_lambda_function.s3_upload_trigger.arn  # Lambda to trigger
+    events              = ["s3:ObjectCreated:*"]  # Trigger on any object creation event
   }
 
+  # Ensure Lambda permissions are set before configuring notifications
   depends_on = [aws_lambda_permission.allow_s3]
 }
