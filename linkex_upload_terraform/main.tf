@@ -189,3 +189,9 @@ resource "aws_s3_bucket_notification" "bucket_notification" {
   # Ensure Lambda permissions are set before configuring notifications
   depends_on = [aws_lambda_permission.allow_s3]
 }
+
+# Create the log group
+resource "aws_cloudwatch_log_group" "lambda-log-group" {
+  name              = "/aws/lambda/${aws_lambda_function.s3_upload_trigger.function_name}"
+  retention_in_days = 30
+}
