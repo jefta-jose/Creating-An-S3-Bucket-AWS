@@ -127,3 +127,25 @@ resource "aws_iam_role_policy_attachment" "lambda_basic_execution" {
   role       = aws_iam_role.lambda_exec_role.name
   policy_arn = "arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole"
 }
+
+# create the lambda function
+resource "aws_lambda_function" "s3_upload_trigger" {
+  function_name = "${module.environment.Project}-upload-trigger"
+  role = aws_iam_role.lambda_exec_role.arn
+  handler = "index.handler"
+  runtime = "python3.12"
+  timeout = 300
+
+  filename = "lambda.zip"
+  source_code_hash = filebase64sha256("lambda.zip")
+
+  environment {
+    variables = {
+      BUCKET_NAME = aws_s3_bucket.upload_bucket.bucket
+    }
+  }
+
+  tags = {
+    Name = "${module.environment.Project}-upload-trigger"
+  }
+}
