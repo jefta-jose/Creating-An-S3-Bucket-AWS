@@ -131,8 +131,8 @@ resource "aws_iam_role_policy_attachment" "lambda_basic_execution" {
 //Create zip file
 data "archive_file" "zip_lambda" {
   type        = "zip"
-  source_dir  = "${path.module}/lambda"
-  output_path = "${path.module}/lambda.zip"
+  source_dir  = "${path.module}/../lambda"
+  output_path = "${path.module}/../lambda.zip"
 }
 
 # create the lambda function
@@ -145,7 +145,7 @@ resource "aws_lambda_function" "s3_upload_trigger" {
 
   depends_on = [ aws_iam_role_policy_attachment.lambda_basic_execution ]
 
-  filename = "${path.module}/lambda.zip"
+  filename = "${path.module}/../lambda.zip"
 
   environment {
     variables = {
