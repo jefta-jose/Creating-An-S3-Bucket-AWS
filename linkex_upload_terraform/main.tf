@@ -157,3 +157,24 @@ resource "aws_lambda_function" "s3_upload_trigger" {
     Name = "${module.environment.Project}-upload-trigger"
   }
 }
+
+# allow s3 to invoke the lambda
+resource "aws_lambda_permission" "allow_sw" {
+  statement_id = "AllowExecutionFromS3"
+  action = "lambda:InvokeFunction"
+  function_name = aws_lambda_function.s3_upload_trigger.arn
+  principal = "s3.amazon.com"
+  source_arn = aws_s3_bucket.upload_bucket.arn
+}
+
+#add s3 event notification
+resource "aws_s3_bucket_notification" "bucket-notification" {
+  bucket = aws_s3_bucket.upload_bucket.id
+
+  lambda_function {
+    lambda_function_arn = aws_lambda_function.s3_upload_trigger.arn
+    events = ["s3:ObjectCreated:*"]
+  }
+
+  depends_on = [ aws_lambda_permission.allow_sw ]
+}
