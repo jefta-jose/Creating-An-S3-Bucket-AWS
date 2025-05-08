@@ -1,5 +1,7 @@
+# Get current AWS region data for potential use in configuration
 data "aws_region" "current" {}
 
+# AWS credentials variables - should be passed securely (never hardcoded)
 variable "access_key" {
   type = string
 }
@@ -7,102 +9,95 @@ variable "access_key" {
 variable "secret_key" {
   type = string
 }
-provider "aws" {
-  region = "us-east-1"
-    access_key = var.access_key
-    secret_key = var.secret_key
 
+# Configure the AWS provider with required credentials and default tags
+provider "aws" {
+  region     = "us-east-1"
+  access_key = var.access_key
+  secret_key = var.secret_key
+
+  # Apply default tags to all resources created by this provider
   default_tags {
     tags = {
-      Terraform = "true"
-      Project = module.environment.Project
+      Terraform = "true"          # Indicates resource was created by Terraform
+      Project   = module.environment.Project  # Gets project name from environment module
     }
   }
 }
 
+# Configure remote backend to store Terraform state in S3 for team collaboration
 terraform {
   backend "s3" {
-    bucket = "linkex-upload-terraform-destination-bucket"
-    key = "state/terraform.tfstate"
-    region = "us-east-1"
-    encrypt = true
+    bucket   = "linkex-upload-terraform-destination-bucket"  # State bucket name
+    key      = "state/terraform.tfstate"  # Path to store state file
+    region   = "us-east-1"               # Region for state bucket
+    encrypt  = true                      # Enable encryption for state file
   }
 }
 
+# Import environment-specific variables from separate module
 module "environment" {
   source = "./vars"
 }
 
-#S3 bucket resource
+# Create S3 bucket for upload destination with project-specific naming
 resource "aws_s3_bucket" "upload_bucket" {
-  bucket = "${module.environment.Project}-destination-bucket"
+  bucket = "${module.environment.Project}-destination-bucket"  # Unique bucket name
   tags = {
-    Name = "${module.environment.Project}_destination_bucket"
+    Name = "${module.environment.Project}_destination_bucket"  # Descriptive tag
   }
 }
 
-# myself as user was created in aws ui by Aaron
-# then myself, I was able to create an access key and secret key 
-# which I later used in my ci-cd to provision resources
-
-# this is the same -> we are creating a user 
-# and this user will have secrets and access key that they can use
-# depending on their level of permission
-
-
-# in this case we have just created a user who so far has no access to any resources
+# Create IAM user for upload functionality with least privilege approach
 resource "aws_iam_user" "linkex_upload_user" {
   name = "linkex-upload-user"
 
   tags = {
-    Name = "linkex-upload-user"
+    Name = "linkex-upload-user"  # Standard naming convention for tracking
   }
 }
 
-
-# we need to grant our user read && write to our s3
-# so we define that policy
+# IAM policy document defining permissions for S3 bucket access
 data "aws_iam_policy_document" "s3_bucket_access" {
   statement {
-    effect = "Allow"
+    effect = "Allow"  # Explicitly allow these actions
 
-    # this block defines what actions can be done on the  bucket
+    # Permissions granted:
+    # - GetObject: Read objects from bucket
+    # - PutObject: Write objects to bucket
+    # - ListBucket: View bucket contents
     actions = [
       "s3:GetObject",
       "s3:PutObject",
       "s3:ListBucket"
     ]
 
-    # this block defines what can you do the above to
+    # Resources this policy applies to:
+    # - The bucket itself
+    # - All objects within the bucket (* wildcard)
     resources = [
-      # this gives us access to arn but nothing that is nested
       aws_s3_bucket.upload_bucket.arn,
-      # access to everything inside the bucket
       "${aws_s3_bucket.upload_bucket.arn}/*"
     ]
-
   }
 }
 
-# now lets create an s3 bucket access IAM policy
+# Create IAM policy from the policy document
 resource "aws_iam_policy" "s3_bucket_access" {
-  name = "${module.environment.Project}-s3-bucket-access-policy"
-  description = "This policy allows access to ${aws_s3_bucket.upload_bucket.bucket}"
-  # why a json though ?
-  policy = data.aws_iam_policy_document.s3_bucket_access.json
+  name        = "${module.environment.Project}-s3-bucket-access-policy"
+  description = "Policy allowing access to ${aws_s3_bucket.upload_bucket.bucket} bucket"
+  
+  # The policy document is converted to JSON as required by AWS IAM
+  policy      = data.aws_iam_policy_document.s3_bucket_access.json
 
-  #notice how we are tagging all our resources this makes it easer
   tags = {
-    Name = "${module.environment.Project}-s3-bucket-access-policy"
+    Name = "${module.environment.Project}-s3-bucket-access-policy"  # Consistent tagging
   }
 }
 
-
-# at this stage we have the policy, the bucket and the user
-# now we need to attach the policy to the user 
-
-# attach the s3 bucket access policy to the IAM user
+# Attach the S3 access policy to the IAM user
+# This grants the user the permissions defined in the policy
 resource "aws_iam_user_policy_attachment" "s3_bucket_access" {
-  user = aws_iam_user.linkex_upload_user.name
-  policy_arn = aws_iam_policy.s3_bucket_access.arn
+  user       = aws_iam_user.linkex_upload_user.name  # Reference to created user
+  policy_arn = aws_iam_policy.s3_bucket_access.arn   # Reference to policy ARN
 }
