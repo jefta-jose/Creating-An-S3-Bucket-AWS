@@ -101,3 +101,24 @@ resource "aws_iam_user_policy_attachment" "s3_bucket_access" {
   user       = aws_iam_user.linkex_upload_user.name  # Reference to created user
   policy_arn = aws_iam_policy.s3_bucket_access.arn   # Reference to policy ARN
 }
+
+# IAM Role for the Lambda
+resource "aws_iam_role" "lambda_exec_role" {
+  name = "${module.environment.Project}-lambda-role"
+
+  assume_role_policy = <<EOF
+    {
+        "Version": "2012-10-17",
+        "Statement": [
+            {
+                "Effect": "Allow",
+                "Principal": {
+                    "Service": "lambda.amazonaws.com"
+                },
+                "Action": "sts:AssumeRole"
+            }
+        ]
+    }
+        EOF
+}
+
