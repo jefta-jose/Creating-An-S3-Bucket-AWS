@@ -156,7 +156,7 @@ resource "aws_lambda_function" "s3_upload_trigger" {
   # Environment variables passed to the Lambda function
   environment {
     variables = {
-      BUCKET_NAME = aws_s3_bucket.upload_bucket.bucket  # Makes bucket name available to Lambda
+        SECRETS_MANAGER_ARN = aws_secretsmanager_secret.secret.arn
     }
   }
 
@@ -196,4 +196,24 @@ resource "aws_cloudwatch_log_group" "lambda-log-group" {
   retention_in_days = 30
 
   depends_on = [ aws_lambda_function.s3_upload_trigger ]
+}
+
+resource "aws_secretsmanager_secret" "secret" {
+  name                           = "${module.environment.Project}-secret-manager"
+  force_overwrite_replica_secret = false
+  recovery_window_in_days        = 30
+
+  tags = {
+    Name        = "${module.environment.Project}-secret-manager"
+  }
+}
+
+resource "aws_secretsmanager_secret" "secret" {
+  name                           = "${module.environment.Project}-secret-manager"
+  force_overwrite_replica_secret = false
+  recovery_window_in_days        = 30
+
+  tags = {
+    Name        = "${module.environment.Project}-secret-manager"
+  }
 }
