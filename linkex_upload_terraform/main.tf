@@ -199,7 +199,7 @@ resource "aws_cloudwatch_log_group" "lambda-log-group" {
 }
 
 resource "aws_secretsmanager_secret" "secret" {
-  name                           = "${module.environment.Project}-secret-manager"
+  name                           = "${module.environment.Project}-secret-manager-2"
   force_overwrite_replica_secret = false
   recovery_window_in_days        = 30
 
