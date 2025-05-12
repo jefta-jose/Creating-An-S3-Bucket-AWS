@@ -145,7 +145,7 @@ resource "aws_lambda_function" "s3_upload_trigger" {
   function_name = "${module.environment.Project}-upload-trigger"  # Unique name for the Lambda function
   role          = aws_iam_role.lambda_exec_role.arn  # IAM role the function will assume
   handler       = "index.handler"  # Entry point for the Lambda function
-  runtime       = "python3.10.12"  # Python 3.12 runtime environment
+  runtime       = "python3.10"  # Python 3.10 runtime environment
   timeout       = 300  # Maximum execution time in seconds (5 minutes)
 
   # Ensure IAM permissions are set before creating the Lambda
