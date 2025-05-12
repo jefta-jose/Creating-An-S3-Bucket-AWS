@@ -22,7 +22,7 @@ jobs:
           elif [[ "$BRANCH_NAME" == "staging" ]]; then
             echo "Current Branch: $BRANCH_NAME"
 
-          elif [[ "$BRANCH_NAME" == "master" ]]; then
+          elif [[ "$BRANCH_NAME" == "main" ]]; then
             echo "Current Branch: $BRANCH_NAME"
 
           else
