@@ -29,16 +29,16 @@ jobs:
           cd linkex_upload_terraform
           terraform init
 
-      - name: Terraform Apply
-        run: |
-          cd linkex_upload_terraform
-          terraform apply --auto-approve \
-            -var="access_key=${{ secrets.AWS_ACCESS_KEY_ID }}" \
-            -var="secret_key=${{ secrets.AWS_SECRET_ACCESS_KEY }}"
-
-      # - name: Terraform Destroy
+      # - name: Terraform Apply
       #   run: |
       #     cd linkex_upload_terraform
-      #     terraform destroy --auto-approve \
+      #     terraform apply --auto-approve \
       #       -var="access_key=${{ secrets.AWS_ACCESS_KEY_ID }}" \
       #       -var="secret_key=${{ secrets.AWS_SECRET_ACCESS_KEY }}"
+
+      - name: Terraform Destroy
+        run: |
+          cd linkex_upload_terraform
+          terraform destroy --auto-approve \
+            -var="access_key=${{ secrets.AWS_ACCESS_KEY_ID }}" \
+            -var="secret_key=${{ secrets.AWS_SECRET_ACCESS_KEY }}"
