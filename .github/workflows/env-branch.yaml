@@ -18,6 +18,8 @@ jobs:
 
           if [[ "$BRANCH_NAME" == "development" ]]; then
             echo "Current Branch: $BRANCH_NAME"
+            echo "This is only in the development branch"
+
 
           elif [[ "$BRANCH_NAME" == "staging" ]]; then
             echo "Current Branch: $BRANCH_NAME"
