@@ -21,6 +21,7 @@ jobs:
 
           elif [[ "$BRANCH_NAME" == "staging" ]]; then
             echo "Current Branch: $BRANCH_NAME"
+            echo "This is only in the staging branch"
 
           elif [[ "$BRANCH_NAME" == "main" ]]; then
             echo "Current Branch: $BRANCH_NAME"
