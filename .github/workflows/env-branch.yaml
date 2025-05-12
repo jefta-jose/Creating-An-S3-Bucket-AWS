@@ -1,0 +1,45 @@
+name: Testing Branches
+
+on:
+  workflow_dispatch:
+    inputs:
+      branch:
+        description: 'Branch to test'
+        required: true
+
+jobs:
+  run-tests:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+        with:
+          ref: ${{ github.event.inputs.branch }}
+
+      - name: Set up .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0.x'
+
+      - name: Restore dependencies
+        run: dotnet restore
+
+      - name: Run Tests Based on Branch
+        run: |
+          BRANCH_NAME="${{ github.event.inputs.branch }}"
+          echo "Selected branch: $BRANCH_NAME"
+
+          if [[ "$BRANCH_NAME" == "development" ]]; then
+            echo "Current Branch: $BRANCH_NAME"
+            
+          elif [[ "$BRANCH_NAME" == "staging" ]]; then
+            echo "Current Branch: $BRANCH_NAME"
+            
+          elif [[ "$BRANCH_NAME" == "master" ]]; then
+            echo "Current Branch: $BRANCH_NAME"
+            
+          else
+            echo "Invalid branch selected"
+            exit 1
+          fi
