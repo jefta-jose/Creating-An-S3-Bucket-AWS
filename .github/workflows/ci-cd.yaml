@@ -24,14 +24,14 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: us-east-1
 
-      # - name: Terraform Init
-      #   run: |
-      #     cd linkex_upload_terraform
-      #     terraform init
+      - name: Terraform Init
+        run: |
+          cd linkex_upload_terraform
+          terraform init
 
-      # - name: Terraform Apply
-      #   run: |
-      #     cd linkex_upload_terraform
-      #     terraform apply --auto-approve \
-      #       -var="access_key=${{ secrets.AWS_ACCESS_KEY_ID }}" \
-      #       -var="secret_key=${{ secrets.AWS_SECRET_ACCESS_KEY }}"
+      - name: Terraform Apply
+        run: |
+          cd linkex_upload_terraform
+          terraform apply --auto-approve \
+            -var="access_key=${{ secrets.AWS_ACCESS_KEY_ID }}" \
+            -var="secret_key=${{ secrets.AWS_SECRET_ACCESS_KEY }}"
