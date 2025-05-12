@@ -207,13 +207,3 @@ resource "aws_secretsmanager_secret" "secret" {
     Name        = "${module.environment.Project}-secret-manager"
   }
 }
-
-resource "aws_secretsmanager_secret" "secret" {
-  name                           = "${module.environment.Project}-secret-manager"
-  force_overwrite_replica_secret = false
-  recovery_window_in_days        = 30
-
-  tags = {
-    Name        = "${module.environment.Project}-secret-manager"
-  }
-}
