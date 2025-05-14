@@ -1,0 +1,57 @@
+name: Upload-QA-Reports-to-S3
+
+on:
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Environment to run tests against'
+        required: true
+        default: 'development'
+        type: choice
+        options:
+          - development
+          - staging
+          - hotfix
+          # - production
+
+env:
+  ENV_NAME: ${{ inputs.environment || 'development' }}
+
+jobs:
+  cypress-tests:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+
+      - name: Install Dependencies
+        run: npm install
+        working-directory: e2e-tests
+
+      - name: Run Cypress tests
+        run: npx cypress run --env ENV=${{ env.ENV_NAME }}
+        working-directory: e2e-tests
+
+      - name: Merge Cypress mochawesome reports
+        run: npm run merge-reports
+        working-directory: e2e-tests
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.QA_TEST_REPORT_UPLOAD_USER_AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.QA_TEST_REPORT_UPLOAD_USER_AWS_SECRET_ACCESS_KEY }}
+          aws-region: us-east-1
+
+      - name: Upload Cypress Test Report To S3
+        run: |
+          aws s3 cp cypress/test-results/test-results.html s3://amarok-summit-qa-test-reports-upload-bucket/cypress-reports/$ENV_NAME/${{ github.run_id }}/test-results.html
+        working-directory: e2e-tests
+        
